@@ -10,7 +10,24 @@ A comprehensive guide to implementing navigation in React Native using Expo Rout
 - [Navigation Implementation](#navigation-implementation)
 - [Key Components & Methods](#key-components--methods)
 - [Setup Instructions](#setup-instructions)
-- [Navigation Examples](#navigation-examples)
+- [Navigation E```
+app/
+├── _layout.tsx              # Root Stack Navigator
+├── index.tsx               # Initial screen
+├── about/
+│   └── index.tsx           # Standalone about screen
+├── (drawer)/               # Drawer navigation group
+│   ├── _layout.tsx         # Drawer Navigator
+│   ├── index.tsx           # Home drawer screen
+│   └── setting.tsx         # Settings drawer screen
+└── (tabs)/                 # Tab navigation group
+    ├── _layout.tsx         # Tab Navigator
+    ├── index.tsx           # Home tab screen
+    ├── aboutus.tsx         # About Us tab screen  
+    └── profile.tsx         # Profile tab screen
+```
+
+#### 5. **Alternative Tab Navigation**gation-examples)
 
 ## 🚀 Project Overview
 
@@ -41,6 +58,8 @@ Expo Router provides:
 }
 ```
 
+**Note**: `react-native-gesture-handler` is especially important for drawer navigation functionality.
+
 ## 📁 File Structure
 
 ```
@@ -49,22 +68,29 @@ app/
 ├── index.tsx               # Initial screen (/)
 ├── about/
 │   └── index.tsx           # About screen (/about)
-└── (tabs)/                 # Tab navigation group
-    ├── _layout.tsx         # Tab navigator layout
-    ├── index.tsx           # Home tab screen
-    ├── aboutus.tsx         # About Us tab screen
-    └── profile.tsx         # Profile tab screen
+├── (tabs)/                 # Tab navigation group
+│   ├── _layout.tsx         # Tab navigator layout
+│   ├── index.tsx           # Home tab screen
+│   ├── aboutus.tsx         # About Us tab screen
+│   └── profile.tsx         # Profile tab screen
+└── (drawer)/               # Drawer navigation group
+    ├── _layout.tsx         # Drawer navigator layout
+    ├── index.tsx           # Home drawer screen
+    └── setting.tsx         # Settings drawer screen
 ```
 
 ### How File-Based Routing Works:
 
-1. **`app/_layout.tsx`** → Root Stack navigator that contains tab navigation
+1. **`app/_layout.tsx`** → Root Stack navigator that contains both tab and drawer navigation
 2. **`app/(tabs)/_layout.tsx`** → Tab navigator layout with 3 tabs
 3. **`app/(tabs)/index.tsx`** → Home tab screen
 4. **`app/(tabs)/aboutus.tsx`** → About Us tab screen  
 5. **`app/(tabs)/profile.tsx`** → Profile tab screen
-6. **`app/index.tsx`** → Initial screen before entering tabs
-7. **`app/about/index.tsx`** → Standalone About screen
+6. **`app/(drawer)/_layout.tsx`** → Drawer navigator layout with 2 screens
+7. **`app/(drawer)/index.tsx`** → Home drawer screen
+8. **`app/(drawer)/setting.tsx`** → Settings drawer screen
+9. **`app/index.tsx`** → Initial screen before entering navigation
+10. **`app/about/index.tsx`** → Standalone About screen
 
 ## 🔧 Navigation Implementation
 
@@ -76,6 +102,7 @@ import { Stack } from "expo-router";
 export default function RootLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(drawer)" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="index" options={{ title: "Home" }} />
       <Stack.Screen name="about/index" options={{ title: "About Us" }} />
@@ -85,12 +112,40 @@ export default function RootLayout() {
 ```
 
 **Explanation:**
-- **`Stack`**: Creates a stack navigator that contains the tab navigation
-- **`headerShown: false`**: Hides the stack header to show tab navigation cleanly
+- **`Stack`**: Creates a stack navigator that contains both drawer and tab navigation
+- **`headerShown: false`**: Hides the stack header to show navigation cleanly
+- **`(drawer)`**: Groups drawer screens using Expo Router's group syntax
 - **`(tabs)`**: Groups tab screens using Expo Router's group syntax
-- **Additional screens**: Standalone screens outside of tab navigation
+- **Multiple navigation patterns**: Supports both drawer and tab navigation simultaneously
 
-### 2. Tab Layout (`app/(tabs)/_layout.tsx`)
+### 2. Drawer Layout (`app/(drawer)/_layout.tsx`)
+
+```tsx
+import { Drawer } from "expo-router/drawer";
+import React from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+const DrawerRootLayout = () => {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer>
+        <Drawer.Screen name="index" options={{ title: "My home page" }} />
+        <Drawer.Screen name="setting" options={{ title: "Settings" }} />
+      </Drawer>
+    </GestureHandlerRootView>
+  );
+};
+
+export default DrawerRootLayout;
+```
+
+**Explanation:**
+- **`Drawer`**: Creates a side drawer navigator with 2 screens
+- **`GestureHandlerRootView`**: Required wrapper for drawer gestures to work properly
+- **Drawer screens**: Home and Settings screens accessible via side drawer
+- **Custom titles**: Each drawer screen has a custom display title
+
+### 3. Tab Layout (`app/(tabs)/_layout.tsx`)
 
 ```tsx
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -159,7 +214,41 @@ export default TabRoots;
 - **Custom styling**: The "About us" tab has a custom elevated circular design
 - **Tab configuration**: Each tab has a title and custom icon
 
-### 3. Tab Screens
+### 4. Drawer Screens
+
+#### Home Drawer Screen (`app/(drawer)/index.tsx`)
+```tsx
+import React from 'react'
+import { Text, View } from 'react-native'
+
+const Home = () => {
+  return (
+    <View>
+      <Text>Home</Text>
+    </View>
+  )
+}
+
+export default Home
+```
+
+#### Settings Drawer Screen (`app/(drawer)/setting.tsx`)
+```tsx
+import React from 'react'
+import { Text, View } from 'react-native'
+
+const setting = () => {
+  return (
+    <View>
+      <Text>setting</Text>
+    </View>
+  )
+}
+
+export default setting
+```
+
+### 5. Tab Screens
 
 #### Home Tab (`app/(tabs)/index.tsx`)
 ```tsx
@@ -209,7 +298,7 @@ const Profile = () => {
 export default Profile
 ```
 
-### 4. Initial Screen (`app/index.tsx`)
+### 6. Initial Screen (`app/index.tsx`)
 
 ```tsx
 import { Link } from "expo-router";
@@ -230,8 +319,8 @@ export default function Index() {
 ```
 
 **Explanation:**
-- **Initial screen**: First screen users see before entering tab navigation
-- **`Link`**: Navigates to standalone about screen outside tabs
+- **Initial screen**: First screen users see before entering drawer or tab navigation
+- **`Link`**: Navigates to standalone about screen outside drawer/tab navigation
 
 ## 🔑 Key Components & Methods
 
@@ -302,25 +391,61 @@ router.replace('/home');
 
 ### Advanced Navigation Patterns
 
-#### 1. **Tab Navigation Implementation**
+#### 1. **Multiple Navigation Patterns**
 
-Your current app implements a sophisticated tab navigation pattern:
+Your current app implements a sophisticated navigation architecture with both drawer and tab navigation:
 
 ```
 Root Stack Navigator
-└── Tab Navigator (3 tabs)
-    ├── Home Tab
-    ├── About Us Tab (with elevated custom icon)
-    └── Profile Tab
+├── Drawer Navigator (2 screens)
+│   ├── Home Screen
+│   └── Settings Screen
+├── Tab Navigator (3 tabs)
+│   ├── Home Tab
+│   ├── About Us Tab (with elevated custom icon)
+│   └── Profile Tab
+├── Initial Screen
+└── Standalone About Screen
 ```
 
 **Key Features:**
-- **Grouped Routes**: Using `(tabs)` folder for file-based tab routing
-- **Custom Icons**: FontAwesome vector icons for each tab
-- **Elevated Design**: Special floating design for the "About Us" tab
-- **Stack + Tabs**: Hybrid navigation combining stack and tab patterns
+- **Dual Navigation**: Both drawer and tab navigation patterns
+- **Grouped Routes**: Using `(drawer)` and `(tabs)` folders for file-based routing
+- **Gesture Support**: Full gesture handling for drawer navigation
+- **Custom Icons**: FontAwesome vector icons for tab navigation
+- **Flexible Architecture**: Mix of grouped and standalone screens
 
-#### 2. **Custom Tab Icon Implementation**
+#### 2. **Drawer Navigation Implementation**
+
+```tsx
+import { Drawer } from "expo-router/drawer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+export default function DrawerLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer>
+        <Drawer.Screen 
+          name="index" 
+          options={{ title: "My home page" }} 
+        />
+        <Drawer.Screen 
+          name="setting" 
+          options={{ title: "Settings" }} 
+        />
+      </Drawer>
+    </GestureHandlerRootView>
+  );
+}
+```
+
+**Drawer Features:**
+- **Side Navigation**: Swipe from left edge to open drawer
+- **Gesture Support**: Full gesture handling with GestureHandlerRootView
+- **Custom Titles**: Each screen has customizable display titles
+- **Automatic Icons**: Default drawer icons provided by Expo Router
+
+#### 3. **Custom Tab Icon Implementation**
 
 ```tsx
 // Standard tab icon
@@ -348,7 +473,7 @@ tabBarIcon: ({ color, size }) => {
 }
 ```
 
-#### 3. **Nested Navigation Structure**
+#### 4. **Nested Navigation Structure**
 ```
 app/
 ├── _layout.tsx              # Root Stack Navigator
@@ -410,16 +535,19 @@ export default function TabLayout() {
 **Find More Icons:**
 - [React Native Vector Icons Directory](https://oblador.github.io/react-native-vector-icons/) - Browse all available FontAwesome and other icon sets
 
-#### 5. **Drawer Navigation**
+#### 6. **Current Drawer Navigation**
 ```tsx
 import { Drawer } from "expo-router/drawer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function DrawerLayout() {
   return (
-    <Drawer>
-      <Drawer.Screen name="home" options={{ title: "Home" }} />
-      <Drawer.Screen name="settings" options={{ title: "Settings" }} />
-    </Drawer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer>
+        <Drawer.Screen name="index" options={{ title: "My home page" }} />
+        <Drawer.Screen name="setting" options={{ title: "Settings" }} />
+      </Drawer>
+    </GestureHandlerRootView>
   );
 }
 ```
@@ -438,8 +566,10 @@ npm install
 ### 2. Configure Navigation
 Ensure these packages are installed:
 ```bash
-npx expo install expo-router react-native-screens react-native-safe-area-context @expo/vector-icons
+npx expo install expo-router react-native-screens react-native-safe-area-context @expo/vector-icons react-native-gesture-handler
 ```
+
+**Important**: For drawer navigation, `react-native-gesture-handler` must be properly configured.
 
 ### 3. Update `package.json`
 ```json
@@ -464,12 +594,17 @@ npm run web
 ### Basic Navigation Flow
 
 1. **App starts** → `app/index.tsx` (Initial screen with welcome message)
-2. **User navigates** → `app/(tabs)/` (Tab navigation with 3 tabs)
-3. **Tab Navigation**:
+2. **Navigation Options**:
+   - **Drawer Navigation** → `app/(drawer)/` (Side drawer with Home and Settings)
+   - **Tab Navigation** → `app/(tabs)/` (Bottom tabs with 3 screens)
+3. **Drawer Navigation**:
+   - **Home Screen** → `app/(drawer)/index.tsx`
+   - **Settings Screen** → `app/(drawer)/setting.tsx`
+4. **Tab Navigation**:
    - **Home Tab** → `app/(tabs)/index.tsx`
    - **About Us Tab** → `app/(tabs)/aboutus.tsx` (with custom elevated icon)
    - **Profile Tab** → `app/(tabs)/profile.tsx`
-4. **Standalone Navigation** → `app/about/index.tsx` (Outside tab structure)
+5. **Standalone Navigation** → `app/about/index.tsx` (Outside drawer/tab structure)
 
 ### Programmatic Navigation Example
 
